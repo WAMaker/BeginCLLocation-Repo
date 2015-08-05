@@ -17,6 +17,11 @@ static NSTimeInterval const kTimeDelay = 2.5;
 
 @interface ViewController () <CLLocationManagerDelegate, MKMapViewDelegate>
 
+@property (weak, nonatomic) IBOutlet MKMapView  *mapView;
+
+@property (assign, nonatomic) CLLocation        *currentLocation;
+
+@property (strong, nonatomic) CLGeocoder        *geocoder;
 @property (strong, nonatomic) CLLocationManager *locMgr;
 @property (strong, nonatomic) MBProgressHUD     *hud;
 
@@ -37,6 +42,25 @@ static NSTimeInterval const kTimeDelay = 2.5;
 //        _locMgr.distanceFilter = 50;
     }
     return _locMgr;
+}
+
+- (CLGeocoder *)geocoder {
+    if (!_geocoder) {
+        _geocoder = [[CLGeocoder alloc] init];
+    }
+    return _geocoder;
+}
+
+- (MKMapView *)mapView {
+    if (!_mapView) {
+        MKMapView *mapView = [[MKMapView alloc] init];
+        _mapView = mapView;
+        
+        _mapView.delegate = self;
+        _mapView.userTrackingMode = MKUserTrackingModeFollow;
+    }
+    
+    return _mapView;
 }
 
 #pragma mark - Lifecycle
@@ -91,6 +115,30 @@ static NSTimeInterval const kTimeDelay = 2.5;
     }
 }
 
+/**
+ *  计算两个坐标之间的直线距离;
+ */
+- (void)calculateStraightDistance {
+    CLLocation *loc1 = [[CLLocation alloc] initWithLatitude:30 longitude:123];
+    CLLocation *loc2 = [[CLLocation alloc] initWithLatitude:31 longitude:124];
+    CLLocationDistance distances = [loc1 distanceFromLocation:loc2];
+    NSLog(@"两点之间的直线距离是%lf", distances);
+}
+
+- (void)showInMap {
+    MKCoordinateRegion region = MKCoordinateRegionMake(self.currentLocation.coordinate, MKCoordinateSpanMake(0.025, 0.025));
+    [self.mapView setRegion:region animated:YES];
+    
+    [self addAnnotation:self.currentLocation.coordinate];
+}
+
+- (void)addAnnotation:(CLLocationCoordinate2D)coordinate {
+    MKPointAnnotation *annotation = [[MKPointAnnotation alloc] init];
+    annotation.title = @"current location";
+    annotation.coordinate = coordinate;
+    [self.mapView addAnnotation:annotation];
+}
+
 #pragma mark - CLLocationManagerDelegate
 
 /**
@@ -98,6 +146,8 @@ static NSTimeInterval const kTimeDelay = 2.5;
  */
 - (void)locationManager:(CLLocationManager *)manager didUpdateLocations:(NSArray *)locations {
     NSLog(@"%@", locations);
+    self.currentLocation = [locations lastObject];
+    [self showInMap];
     [self.locMgr stopUpdatingLocation];
 }
 
