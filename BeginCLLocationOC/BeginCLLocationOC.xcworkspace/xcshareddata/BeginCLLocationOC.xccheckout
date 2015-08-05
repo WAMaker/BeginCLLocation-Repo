@@ -5,7 +5,7 @@
 	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
 	<false/>
 	<key>IDESourceControlProjectIdentifier</key>
-	<string>79FB3E68-C3F0-4A7E-BDCE-4C4D1FBD386F</string>
+	<string>B748E278-58ED-43D2-82CF-DE86310327AE</string>
 	<key>IDESourceControlProjectName</key>
 	<string>BeginCLLocationOC</string>
 	<key>IDESourceControlProjectOriginsDictionary</key>
@@ -14,11 +14,11 @@
 		<string>https://github.com/WAMaker/BeginCLLocation-Repo.git</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
-	<string>BeginCLLocationOC/BeginCLLocationOC.xcodeproj</string>
+	<string>BeginCLLocationOC/BeginCLLocationOC.xcworkspace</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
 		<key>E4CFD2F1BBFB424CA99A190A8EF04E68B108D672</key>
-		<string>../../..</string>
+		<string>../..</string>
 	</dict>
 	<key>IDESourceControlProjectURL</key>
 	<string>https://github.com/WAMaker/BeginCLLocation-Repo.git</string>
