@@ -75,6 +75,10 @@ static NSTimeInterval const kTimeDelay = 2.5;
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    
+    UITapGestureRecognizer *recognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(backgroundTapped)];
+    recognizer.cancelsTouchesInView = NO;
+    [self.view addGestureRecognizer:recognizer];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -84,10 +88,12 @@ static NSTimeInterval const kTimeDelay = 2.5;
 #pragma mark - IBAction
 
 - (IBAction)startLocating {
+    [self keyboardResign];
     [self locationAuthorizationJudge];
 }
 
 - (IBAction)geocode {
+    [self keyboardResign];
     if (self.addressField.text.length == 0) {
         [self showCommonTip:@"请填写地址"];
         return;
@@ -103,7 +109,8 @@ static NSTimeInterval const kTimeDelay = 2.5;
         }
         CLPlacemark *placemark = [placemarks firstObject];
         NSString *formatString = [NSString stringWithFormat:@"经度：%lf，纬度：%lf\n%@ %@", placemark.location.coordinate.latitude, placemark.location.coordinate.longitude, placemark.name, placemark.country];
-        self.resultLabel.text = formatString;
+        weakSelf.resultLabel.text = formatString;
+        [weakSelf showInMapWithCoordinate:CLLocationCoordinate2DMake(placemark.location.coordinate.latitude, placemark.location.coordinate.longitude)];
         
         for (CLPlacemark *pm in placemarks) {
             NSLog(@"%lf %lf %@ %@", pm.location.coordinate.latitude, pm.location.coordinate.longitude, pm.name, pm.locality);
@@ -112,6 +119,7 @@ static NSTimeInterval const kTimeDelay = 2.5;
 }
 
 - (IBAction)reverseGeocode {
+    [self keyboardResign];
     if (self.latitudeField.text.length == 0 || self.longitudeField.text.length == 0) {
         [self showCommonTip:@"请填写经纬度"];
         return;
@@ -130,7 +138,8 @@ static NSTimeInterval const kTimeDelay = 2.5;
         }
         CLPlacemark *placemark = [placemarks firstObject];
         NSString *formatString = [NSString stringWithFormat:@"经度：%lf，纬度：%lf\n%@ %@", placemark.location.coordinate.latitude, placemark.location.coordinate.longitude, placemark.name, placemark.country];
-        self.resultLabel.text = formatString;
+        weakSelf.resultLabel.text = formatString;
+        [weakSelf showInMapWithCoordinate:CLLocationCoordinate2DMake(latitude, longitude)];
         
         for (CLPlacemark *pm in placemarks) {
             NSLog(@"%lf %lf %@ %@", pm.location.coordinate.latitude, pm.location.coordinate.longitude, pm.name, pm.locality);
@@ -155,6 +164,10 @@ static NSTimeInterval const kTimeDelay = 2.5;
     self.hud.mode = MBProgressHUDModeIndeterminate;
     self.hud.labelText = msg;
     [self.hud show:NO];
+}
+
+- (void)backgroundTapped {
+    [self keyboardResign];
 }
 
 /**
@@ -193,18 +206,24 @@ static NSTimeInterval const kTimeDelay = 2.5;
     NSLog(@"两点之间的直线距离是%lf", distances);
 }
 
-- (void)showInMap {
-    MKCoordinateRegion region = MKCoordinateRegionMake(self.currentLocation.coordinate, MKCoordinateSpanMake(0.025, 0.025));
+- (void)showInMapWithCoordinate:(CLLocationCoordinate2D)coordinate {
+    MKCoordinateRegion region = MKCoordinateRegionMake(coordinate, MKCoordinateSpanMake(0.025, 0.025));
     [self.mapView setRegion:region animated:YES];
     
-    [self addAnnotation:self.currentLocation.coordinate];
+    [self addAnnotation:coordinate];
 }
 
 - (void)addAnnotation:(CLLocationCoordinate2D)coordinate {
+    [self.mapView removeAnnotations:self.mapView.annotations];
+    
     MKPointAnnotation *annotation = [[MKPointAnnotation alloc] init];
     annotation.title = @"current location";
     annotation.coordinate = coordinate;
     [self.mapView addAnnotation:annotation];
+}
+
+- (void)keyboardResign {
+    [self.view endEditing:YES];
 }
 
 #pragma mark - CLLocationManagerDelegate
@@ -215,7 +234,7 @@ static NSTimeInterval const kTimeDelay = 2.5;
 - (void)locationManager:(CLLocationManager *)manager didUpdateLocations:(NSArray *)locations {
     NSLog(@"%@", locations);
     self.currentLocation = [locations lastObject];
-    [self showInMap];
+    [self showInMapWithCoordinate:self.currentLocation.coordinate];
     [self.locMgr stopUpdatingLocation];
 }
 
