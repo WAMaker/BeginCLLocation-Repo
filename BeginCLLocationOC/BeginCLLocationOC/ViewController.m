@@ -13,19 +13,27 @@
 #import <MapKit/MapKit.h>
 #import <CoreLocation/CoreLocation.h>
 
+#define WS(weakSelf)  __weak __typeof(&*self)weakSelf = self
+
 static NSTimeInterval const kTimeDelay = 2.5;
 
 @interface ViewController () <CLLocationManagerDelegate, MKMapViewDelegate>
 
-@property (weak, nonatomic) IBOutlet MKMapView  *mapView;
+@property (weak, nonatomic) IBOutlet UITextField *addressField;
+@property (weak, nonatomic) IBOutlet UITextField *latitudeField;
+@property (weak, nonatomic) IBOutlet UITextField *longitudeField;
+@property (weak, nonatomic) IBOutlet UILabel     *resultLabel;
+@property (weak, nonatomic) IBOutlet MKMapView   *mapView;
 
-@property (assign, nonatomic) CLLocation        *currentLocation;
+@property (assign, nonatomic) CLLocation         *currentLocation;
 
-@property (strong, nonatomic) CLGeocoder        *geocoder;
-@property (strong, nonatomic) CLLocationManager *locMgr;
-@property (strong, nonatomic) MBProgressHUD     *hud;
+@property (strong, nonatomic) CLGeocoder         *geocoder;
+@property (strong, nonatomic) CLLocationManager  *locMgr;
+@property (strong, nonatomic) MBProgressHUD      *hud;
 
 - (IBAction)startLocating;
+- (IBAction)geocode;
+- (IBAction)reverseGeocode;
 
 @end
 
@@ -79,6 +87,57 @@ static NSTimeInterval const kTimeDelay = 2.5;
     [self locationAuthorizationJudge];
 }
 
+- (IBAction)geocode {
+    if (self.addressField.text.length == 0) {
+        [self showCommonTip:@"请填写地址"];
+        return;
+    }
+    [self showProcessHud:@"正在获取位置信息"];
+    WS(weakSelf);
+    [self.geocoder geocodeAddressString:self.addressField.text completionHandler:^(NSArray *placemarks, NSError *error) {
+        [weakSelf.hud hide:YES];
+        if (error) {
+            [weakSelf showCommonTip:@""];
+            NSLog(@"%@", error);
+            return;
+        }
+        CLPlacemark *placemark = [placemarks firstObject];
+        NSString *formatString = [NSString stringWithFormat:@"经度：%lf，纬度：%lf\n%@ %@", placemark.location.coordinate.latitude, placemark.location.coordinate.longitude, placemark.name, placemark.country];
+        self.resultLabel.text = formatString;
+        
+        for (CLPlacemark *pm in placemarks) {
+            NSLog(@"%lf %lf %@ %@", pm.location.coordinate.latitude, pm.location.coordinate.longitude, pm.name, pm.locality);
+        }
+    }];
+}
+
+- (IBAction)reverseGeocode {
+    if (self.latitudeField.text.length == 0 || self.longitudeField.text.length == 0) {
+        [self showCommonTip:@"请填写经纬度"];
+        return;
+    }
+    [self showProcessHud:@"正在获取位置信息"];
+    WS(weakSelf);
+    CLLocationDegrees latitude = [self.latitudeField.text doubleValue];
+    CLLocationDegrees longitude = [self.longitudeField.text doubleValue];
+    CLLocation *location = [[CLLocation alloc] initWithLatitude:latitude longitude:longitude];
+    [self.geocoder reverseGeocodeLocation:location completionHandler:^(NSArray *placemarks, NSError *error) {
+        [weakSelf.hud hide:YES];
+        if (error) {
+            [weakSelf showCommonTip:@""];
+            NSLog(@"%@", error);
+            return;
+        }
+        CLPlacemark *placemark = [placemarks firstObject];
+        NSString *formatString = [NSString stringWithFormat:@"经度：%lf，纬度：%lf\n%@ %@", placemark.location.coordinate.latitude, placemark.location.coordinate.longitude, placemark.name, placemark.country];
+        self.resultLabel.text = formatString;
+        
+        for (CLPlacemark *pm in placemarks) {
+            NSLog(@"%lf %lf %@ %@", pm.location.coordinate.latitude, pm.location.coordinate.longitude, pm.name, pm.locality);
+        }
+    }];
+}
+
 #pragma mark - Private
 
 - (void)showCommonTip:(NSString *)tip {
@@ -87,6 +146,15 @@ static NSTimeInterval const kTimeDelay = 2.5;
     self.hud.labelText = tip;
     self.hud.removeFromSuperViewOnHide = YES;
     [self.hud hide:YES afterDelay:kTimeDelay];
+}
+
+- (void)showProcessHud:(NSString *)msg {
+    self.hud = [[MBProgressHUD alloc] initWithView:self.view];
+    [self.view  addSubview:self.hud];
+    self.hud.removeFromSuperViewOnHide = YES;
+    self.hud.mode = MBProgressHUDModeIndeterminate;
+    self.hud.labelText = msg;
+    [self.hud show:NO];
 }
 
 /**
