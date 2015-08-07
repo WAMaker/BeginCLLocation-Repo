@@ -78,7 +78,6 @@
 			isa = PBXGroup;
 			children = (
 				CA53E8A11B719A200026029A /* Other */,
-				CA53E8A01B719A160026029A /* View */,
 				CA53E89F1B719A0F0026029A /* Controller */,
 			);
 			name = Classes;
@@ -91,13 +90,6 @@
 				CAAF9C4E1B712FCB002202A9 /* ViewController.m */,
 			);
 			name = Controller;
-			sourceTree = "<group>";
-		};
-		CA53E8A01B719A160026029A /* View */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = View;
 			sourceTree = "<group>";
 		};
 		CA53E8A11B719A200026029A /* Other */ = {

@@ -201,18 +201,18 @@ static NSTimeInterval const kTimeDelay = 2.5;
     NSString *locationServicesEnabled = [CLLocationManager locationServicesEnabled] ? @"YES" : @"NO";
     NSLog(@"location services enabled = %@", locationServicesEnabled);
     
-    if (status == kCLAuthorizationStatusDenied) { // 如果授权状态是拒绝就给用户提示
-        [self showCommonTip:@"请前往设置-隐私-定位中打开定位服务"];
-    } else if (status == kCLAuthorizationStatusNotDetermined) { // 如果授权状态还没有被决定就弹出提示框
+    if (status == kCLAuthorizationStatusNotDetermined) { // 如果授权状态还没有被决定就弹出提示框
         if ([self.locMgr respondsToSelector:@selector(requestWhenInUseAuthorization)]) {
             [self.locMgr requestWhenInUseAuthorization];
-//            [self.locMgr requestAlwaysAuthorization];
+            //            [self.locMgr requestAlwaysAuthorization];
         }
         
         // 也可以判断当前系统版本是否大于8.0
-//        if ([[UIDevice currentDevice].systemVersion doubleValue] >= 8.0) {
-//            [self.locMgr requestWhenInUseAuthorization];
-//        }
+        //        if ([[UIDevice currentDevice].systemVersion doubleValue] >= 8.0) {
+        //            [self.locMgr requestWhenInUseAuthorization];
+        //        }
+    } else if (status == kCLAuthorizationStatusDenied) { // 如果授权状态是拒绝就给用户提示
+        [self showCommonTip:@"请前往设置-隐私-定位中打开定位服务"];
     } else if (status == kCLAuthorizationStatusAuthorizedWhenInUse || status == kCLAuthorizationStatusAuthorizedAlways) { // 如果授权状态可以使用就开始获取用户位置
         [self.locMgr startUpdatingLocation];
     }
